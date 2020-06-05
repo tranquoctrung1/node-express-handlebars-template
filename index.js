@@ -4,11 +4,13 @@ const http = require("http");
 const exphbs = require("express-handlebars");
 const sass = require("node-sass-middleware");
 const reload = require("reload");
+const session = require("express-session");
+const hbs_sections = require("express-handlebars-sections");
+require("express-async-errors");
 
 const app = express();
 
 // call router
-//const login = require('./router/login');
 
 const port = 3000;
 
@@ -23,6 +25,12 @@ app.engine(
     defaultLayout: "layout",
     partialsDir: "views/_partials",
     extname: ".hbs",
+    helpers: {
+      sections: hbs_sections(),
+      foo: function () {
+        return "foo";
+      },
+    },
   })
 );
 app.set("view engine", "hbs");
@@ -57,6 +65,19 @@ app.use("/", express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.render("index");
+});
+
+// defaul error handler
+
+// page not found
+app.use(function (req, res) {
+  res.render("404", { layout: false });
+});
+
+// other error
+app.use(function (err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).render("500", { layout: false });
 });
 
 const server = http.createServer(app);
